@@ -1,0 +1,75 @@
+name: xtegoo
+description: XTegoo - мессенджер с встроенным переводчиком
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.19.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+
+  # Состояние
+  flutter_riverpod: ^2.4.9
+
+  # Навигация
+  go_router: ^13.2.0
+
+  # Сеть
+  dio: ^5.4.0
+  socket_io_client: ^3.1.6
+
+  # Локальное хранилище
+  hive_flutter: ^1.1.0
+
+  # Уведомления
+  firebase_messaging: ^14.7.10
+
+  # Видео звонки
+  livekit_client: ^2.0.0
+
+  # Изображения
+  cached_network_image: ^3.3.1
+
+  # Выбор файлов
+  image_picker: ^1.0.7
+  file_picker: ^6.1.1
+
+  # Аудио
+  record: ^5.0.4
+
+  # Календарь
+  table_calendar: ^3.0.9
+
+  # Разрешения
+  permission_handler: ^11.2.0
+
+  # Карты
+  google_maps_flutter: ^2.5.3
+
+  # QR код
+  qr_flutter: ^4.1.0
+
+  # Голос
+  speech_to_text: ^6.5.1
+  flutter_tts: ^4.0.0
+
+  # Перевод
+  translator: ^1.0.0
+
+  # Утилиты
+  intl: ^0.19.0
+  uuid: ^4.3.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  build_runner: ^2.4.8
+  hive_generator: ^2.0.1
+
+flutter:
+  uses-material-design: true
