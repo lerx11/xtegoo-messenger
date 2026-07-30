@@ -1,21 +1,18 @@
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
 
-// Генерация access токена
-export const generateAccessToken = (userId: string) => {
+export const generateAccessToken = (userId: string): string => {
   return jwt.sign({ userId }, config.jwt.secret, {
     expiresIn: config.jwt.accessExpiresIn,
-  });
+  } as jwt.SignOptions);
 };
 
-// Генерация refresh токена
-export const generateRefreshToken = (userId: string) => {
+export const generateRefreshToken = (userId: string): string => {
   return jwt.sign({ userId }, config.jwt.refreshSecret, {
     expiresIn: config.jwt.refreshExpiresIn,
-  });
+  } as jwt.SignOptions);
 };
 
-// Верификация access токена
 export const verifyAccessToken = (token: string) => {
   try {
     return jwt.verify(token, config.jwt.secret) as { userId: string };
@@ -24,7 +21,6 @@ export const verifyAccessToken = (token: string) => {
   }
 };
 
-// Верификация refresh токена
 export const verifyRefreshToken = (token: string) => {
   try {
     return jwt.verify(token, config.jwt.refreshSecret) as { userId: string };

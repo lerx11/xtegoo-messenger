@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { AuthService } from '../services/authService';
 import { authLimiter } from '../middleware/rateLimiter';
 import { authMiddleware } from '../middleware/auth';
@@ -10,7 +10,7 @@ const router = Router();
 router.post(
   '/send-code',
   authLimiter,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const { phone } = req.body;
     const result = await AuthService.sendCode(phone);
     res.json(result);
@@ -21,7 +21,7 @@ router.post(
 router.post(
   '/verify-code',
   authLimiter,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const { phone, code } = req.body;
     const result = await AuthService.verifyCode(phone, code);
     res.json(result);
@@ -31,7 +31,7 @@ router.post(
 // Обновление токенов
 router.post(
   '/refresh-token',
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const { refreshToken } = req.body;
     const result = await AuthService.refreshToken(refreshToken);
     res.json(result);
@@ -42,7 +42,7 @@ router.post(
 router.post(
   '/logout',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const result = await AuthService.logout(req.user.id);
     res.json(result);

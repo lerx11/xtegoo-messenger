@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { CalendarService } from '../services/calendarService';
 import { authMiddleware } from '../middleware/auth';
 import { asyncHandler } from '../utils/helpers';
@@ -9,7 +9,7 @@ const router = Router();
 router.get(
   '/events',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const { startDate, endDate } = req.query;
     const events = await CalendarService.getEvents(
@@ -24,7 +24,7 @@ router.get(
 router.get(
   '/events/:id',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const event = await CalendarService.getEventById(req.params.id, req.user.id);
     res.json(event);
@@ -34,7 +34,7 @@ router.get(
 router.post(
   '/events',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const event = await CalendarService.createEvent(req.user.id, {
       ...req.body,
@@ -47,7 +47,7 @@ router.post(
 router.put(
   '/events/:id',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const data = { ...req.body };
     if (data.date) data.date = new Date(data.date);
@@ -59,7 +59,7 @@ router.put(
 router.delete(
   '/events/:id',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const result = await CalendarService.deleteEvent(req.params.id, req.user.id);
     res.json(result);
@@ -70,7 +70,7 @@ router.delete(
 router.post(
   '/bookings',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const { serviceId, date } = req.body;
     const booking = await CalendarService.createBooking(
@@ -85,7 +85,7 @@ router.post(
 router.get(
   '/bookings/my',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const bookings = await CalendarService.getClientBookings(req.user.id);
     res.json(bookings);
@@ -95,7 +95,7 @@ router.get(
 router.get(
   '/bookings/business',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const bookings = await CalendarService.getBusinessBookings(req.user.id);
     res.json(bookings);

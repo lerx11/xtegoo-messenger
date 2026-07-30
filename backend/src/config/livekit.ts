@@ -1,12 +1,11 @@
 import { AccessToken } from 'livekit-server-sdk';
 import { config } from '../config';
 
-// Генерация токена для комнаты LiveKit
-export const generateLiveKitToken = (
+export const generateLiveKitToken = async (
   roomName: string,
   participantName: string,
   userId: string
-): string => {
+): Promise<string> => {
   const at = new AccessToken(config.livekit.apiKey, config.livekit.apiSecret, {
     identity: userId,
     name: participantName,
@@ -19,5 +18,5 @@ export const generateLiveKitToken = (
     canSubscribe: true,
   });
 
-  return at.toJwt();
+  return await at.toJwt();
 };

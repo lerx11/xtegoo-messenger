@@ -1,4 +1,5 @@
 // Вспомогательные функции
+import { Request, Response, NextFunction } from 'express';
 
 // Генерация кода подтверждения (6 цифр)
 export const generateCode = (): string => {
@@ -16,6 +17,8 @@ export const isValidUsername = (username: string): boolean => {
 };
 
 // Обработка асинхронных ошибок в роутах
-export const asyncHandler = (fn: Function) => (req: any, res: any, next: any) => {
+export const asyncHandler = (
+  fn: (req: Request, res: Response, next: NextFunction) => Promise<any>
+) => (req: Request, res: Response, next: NextFunction) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };

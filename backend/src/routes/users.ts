@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { UserService } from '../services/userService';
 import { authMiddleware } from '../middleware/auth';
 import { asyncHandler } from '../utils/helpers';
@@ -9,7 +9,7 @@ const router = Router();
 router.get(
   '/me',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const user = await UserService.getMe(req.user.id);
     res.json(user);
@@ -20,7 +20,7 @@ router.get(
 router.get(
   '/:id',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const user = await UserService.getById(req.params.id);
     if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
     res.json(user);
@@ -31,7 +31,7 @@ router.get(
 router.get(
   '/search',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const q = req.query.q as string;
     if (!q) return res.json([]);
     const users = await UserService.search(q);
@@ -43,7 +43,7 @@ router.get(
 router.get(
   '/check-username/:username',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const result = await UserService.checkUsername(req.params.username);
     res.json(result);
   })
@@ -53,7 +53,7 @@ router.get(
 router.put(
   '/update-username',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const { username } = req.body;
     const user = await UserService.updateUsername(req.user.id, username);
@@ -65,7 +65,7 @@ router.put(
 router.put(
   '/update-profile',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const user = await UserService.updateProfile(req.user.id, req.body);
     res.json(user);

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { TranslateService } from '../services/translateService';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { translateLimiter } from '../middleware/rateLimiter';
@@ -12,7 +12,7 @@ router.post(
   '/translate',
   translateLimiter,
   optionalAuthMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const { text, targetLang, sourceLang } = req.body;
 
     if (!text || !targetLang) {
@@ -29,7 +29,7 @@ router.post(
   '/translate-batch',
   translateLimiter,
   optionalAuthMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const { texts, targetLang, sourceLang } = req.body;
 
     if (!texts || !targetLang) {
@@ -44,7 +44,7 @@ router.post(
 // Список поддерживаемых языков
 router.get(
   '/languages',
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const languages = await TranslateService.getLanguages();
     res.json(languages);
   })
@@ -54,7 +54,7 @@ router.get(
 router.post(
   '/detect',
   translateLimiter,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const { text } = req.body;
     if (!text) return res.status(400).json({ error: 'Текст обязателен' });
 
@@ -67,7 +67,7 @@ router.post(
 router.get(
   '/history',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
 
     // Возвращаем недавние переводы из кеша
