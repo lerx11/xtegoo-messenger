@@ -23,12 +23,14 @@ class UserService {
   }
 
   Future<bool> checkUsername(String username) async {
-    final response = await _api.get('/users/check-username/$username');
+    final clean = username.replaceAll('@', '');
+    final response = await _api.get('/users/check-username/$clean');
     return response.data['available'] == true;
   }
 
   Future<User> updateUsername(String username) async {
-    final response = await _api.put('/users/update-username', data: {'username': username});
+    final clean = username.replaceAll('@', '');
+    final response = await _api.put('/users/update-username', data: {'username': '@$clean'});
     return User.fromJson(response.data);
   }
 
