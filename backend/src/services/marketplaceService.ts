@@ -119,6 +119,34 @@ export class MarketplaceService {
     });
   }
 
+  static async updateService(serviceId: string, userId: string, data: any) {
+    const service = await prisma.service.findUnique({
+      where: { id: serviceId },
+    });
+
+    if (!service || service.userId !== userId) {
+      throw new Error('Услуга не найдена или нет прав');
+    }
+
+    return prisma.service.update({
+      where: { id: serviceId },
+      data,
+    });
+  }
+
+  static async deleteService(serviceId: string, userId: string) {
+    const service = await prisma.service.findUnique({
+      where: { id: serviceId },
+    });
+
+    if (!service || service.userId !== userId) {
+      throw new Error('Услуга не найдена или нет прав');
+    }
+
+    await prisma.service.delete({ where: { id: serviceId } });
+    return { success: true };
+  }
+
   // Заказы
   static async createOrder(buyerId: string, productId: string) {
     return prisma.order.create({

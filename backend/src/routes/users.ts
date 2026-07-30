@@ -1,7 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { UserService } from '../services/userService';
 import { authMiddleware } from '../middleware/auth';
+import { validate, validateQuery } from '../middleware/validate';
 import { asyncHandler } from '../utils/helpers';
+import {
+  updateProfileSchema,
+  updateUsernameSchema,
+  searchSchema,
+} from '../validators';
 
 const router = Router();
 
@@ -31,9 +37,9 @@ router.get(
 router.get(
   '/search',
   authMiddleware,
+  validateQuery(searchSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const q = req.query.q as string;
-    if (!q) return res.json([]);
     const users = await UserService.search(q);
     res.json(users);
   })
@@ -53,6 +59,7 @@ router.get(
 router.put(
   '/update-username',
   authMiddleware,
+  validate(updateUsernameSchema),
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const { username } = req.body;
@@ -65,6 +72,7 @@ router.put(
 router.put(
   '/update-profile',
   authMiddleware,
+  validate(updateProfileSchema),
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const user = await UserService.updateProfile(req.user.id, req.body);

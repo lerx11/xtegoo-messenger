@@ -1,7 +1,15 @@
 import { Router, Request, Response } from 'express';
 import { MarketplaceService } from '../services/marketplaceService';
 import { authMiddleware } from '../middleware/auth';
+import { validate } from '../middleware/validate';
 import { asyncHandler } from '../utils/helpers';
+import {
+  createProductSchema,
+  updateProductSchema,
+  createServiceSchema,
+  updateServiceSchema,
+  createOrderSchema,
+} from '../validators';
 
 const router = Router();
 
@@ -49,6 +57,7 @@ router.get(
 router.post(
   '/products',
   authMiddleware,
+  validate(createProductSchema),
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const product = await MarketplaceService.createProduct(req.user.id, req.body);
@@ -59,6 +68,7 @@ router.post(
 router.put(
   '/products/:id',
   authMiddleware,
+  validate(updateProductSchema),
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const product = await MarketplaceService.updateProduct(
@@ -102,6 +112,7 @@ router.get(
 router.post(
   '/services',
   authMiddleware,
+  validate(createServiceSchema),
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const service = await MarketplaceService.createService(req.user.id, req.body);
@@ -109,10 +120,36 @@ router.post(
   })
 );
 
+router.put(
+  '/services/:id',
+  authMiddleware,
+  validate(updateServiceSchema),
+  asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
+    const service = await MarketplaceService.updateService(
+      req.params.id,
+      req.user.id,
+      req.body
+    );
+    res.json(service);
+  })
+);
+
+router.delete(
+  '/services/:id',
+  authMiddleware,
+  asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
+    const result = await MarketplaceService.deleteService(req.params.id, req.user.id);
+    res.json(result);
+  })
+);
+
 // Заказы
 router.post(
   '/orders',
   authMiddleware,
+  validate(createOrderSchema),
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const { productId } = req.body;

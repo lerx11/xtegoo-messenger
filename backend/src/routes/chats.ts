@@ -1,7 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { ChatService } from '../services/chatService';
 import { authMiddleware } from '../middleware/auth';
+import { validate } from '../middleware/validate';
 import { asyncHandler } from '../utils/helpers';
+import { createChatSchema, sendMessageSchema } from '../validators';
 
 const router = Router();
 
@@ -20,6 +22,7 @@ router.get(
 router.post(
   '/create',
   authMiddleware,
+  validate(createChatSchema),
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const { targetUserId, isGroup, name } = req.body;
@@ -47,6 +50,7 @@ router.get(
 router.post(
   '/:id/messages',
   authMiddleware,
+  validate(sendMessageSchema),
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const { content, type, fileUrl, replyToId } = req.body;

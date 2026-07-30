@@ -1,7 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { CalendarService } from '../services/calendarService';
 import { authMiddleware } from '../middleware/auth';
+import { validate } from '../middleware/validate';
 import { asyncHandler } from '../utils/helpers';
+import {
+  createCalendarEventSchema,
+  updateCalendarEventSchema,
+  createBookingSchema,
+} from '../validators';
 
 const router = Router();
 
@@ -34,6 +40,7 @@ router.get(
 router.post(
   '/events',
   authMiddleware,
+  validate(createCalendarEventSchema),
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const event = await CalendarService.createEvent(req.user.id, {
@@ -47,6 +54,7 @@ router.post(
 router.put(
   '/events/:id',
   authMiddleware,
+  validate(updateCalendarEventSchema),
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const data = { ...req.body };
@@ -70,6 +78,7 @@ router.delete(
 router.post(
   '/bookings',
   authMiddleware,
+  validate(createBookingSchema),
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const { serviceId, date } = req.body;

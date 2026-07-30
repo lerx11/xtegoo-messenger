@@ -2,8 +2,14 @@ import { Router, Request, Response } from 'express';
 import { TranslateService } from '../services/translateService';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { translateLimiter } from '../middleware/rateLimiter';
+import { validate } from '../middleware/validate';
 import { asyncHandler } from '../utils/helpers';
 import prisma from '../config/database';
+import {
+  translateSchema,
+  translateBatchSchema,
+  detectLanguageSchema,
+} from '../validators';
 
 const router = Router();
 
@@ -12,13 +18,9 @@ router.post(
   '/translate',
   translateLimiter,
   optionalAuthMiddleware,
+  validate(translateSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const { text, targetLang, sourceLang } = req.body;
-
-    if (!text || !targetLang) {
-      return res.status(400).json({ error: 'Текст и целевой язык обязательны' });
-    }
-
     const result = await TranslateService.translate(text, targetLang, sourceLang);
     res.json(result);
   })
@@ -29,13 +31,9 @@ router.post(
   '/translate-batch',
   translateLimiter,
   optionalAuthMiddleware,
+  validate(translateBatchSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const { texts, targetLang, sourceLang } = req.body;
-
-    if (!texts || !targetLang) {
-      return res.status(400).json({ error: 'Тексты и целевой язык обязательны' });
-    }
-
     const result = await TranslateService.translateBatch(texts, targetLang, sourceLang);
     res.json(result);
   })
@@ -54,10 +52,9 @@ router.get(
 router.post(
   '/detect',
   translateLimiter,
+  validate(detectLanguageSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const { text } = req.body;
-    if (!text) return res.status(400).json({ error: 'Текст обязателен' });
-
     const language = await TranslateService.detectLanguage(text);
     res.json({ language });
   })

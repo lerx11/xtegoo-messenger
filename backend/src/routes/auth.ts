@@ -2,7 +2,13 @@ import { Router, Request, Response } from 'express';
 import { AuthService } from '../services/authService';
 import { authLimiter } from '../middleware/rateLimiter';
 import { authMiddleware } from '../middleware/auth';
+import { validate } from '../middleware/validate';
 import { asyncHandler } from '../utils/helpers';
+import {
+  sendCodeSchema,
+  verifyCodeSchema,
+  refreshTokenSchema,
+} from '../validators';
 
 const router = Router();
 
@@ -10,6 +16,7 @@ const router = Router();
 router.post(
   '/send-code',
   authLimiter,
+  validate(sendCodeSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const { phone } = req.body;
     const result = await AuthService.sendCode(phone);
@@ -21,6 +28,7 @@ router.post(
 router.post(
   '/verify-code',
   authLimiter,
+  validate(verifyCodeSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const { phone, code } = req.body;
     const result = await AuthService.verifyCode(phone, code);
@@ -31,6 +39,7 @@ router.post(
 // Обновление токенов
 router.post(
   '/refresh-token',
+  validate(refreshTokenSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const { refreshToken } = req.body;
     const result = await AuthService.refreshToken(refreshToken);

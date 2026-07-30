@@ -1,7 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { StoryService } from '../services/storyService';
 import { authMiddleware } from '../middleware/auth';
+import { validate } from '../middleware/validate';
 import { asyncHandler } from '../utils/helpers';
+import { createStorySchema } from '../validators';
 
 const router = Router();
 
@@ -29,6 +31,7 @@ router.get(
 router.post(
   '/create',
   authMiddleware,
+  validate(createStorySchema),
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const { mediaUrl, type } = req.body;

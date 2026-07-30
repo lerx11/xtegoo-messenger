@@ -1,7 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { CallService } from '../services/callService';
 import { authMiddleware } from '../middleware/auth';
+import { validate } from '../middleware/validate';
 import { asyncHandler } from '../utils/helpers';
+import {
+  createCallSchema,
+  livekitTokenSchema,
+  updateCallStatusSchema,
+} from '../validators';
 
 const router = Router();
 
@@ -20,6 +26,7 @@ router.get(
 router.post(
   '/create',
   authMiddleware,
+  validate(createCallSchema),
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const { receiverId, type } = req.body;
@@ -32,6 +39,7 @@ router.post(
 router.post(
   '/livekit-token',
   authMiddleware,
+  validate(livekitTokenSchema),
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Не авторизован' });
     const { roomName, participantName } = req.body;
@@ -44,6 +52,7 @@ router.post(
 router.put(
   '/:id/status',
   authMiddleware,
+  validate(updateCallStatusSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const { status, duration } = req.body;
     const call = await CallService.updateStatus(req.params.id, status, duration);

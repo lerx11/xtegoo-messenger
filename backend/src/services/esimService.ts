@@ -89,15 +89,15 @@ export class ESIMService {
   }
 
   // Покупка eSIM
-  static async purchaseESIM(userId: string, planId: string) {
+  static async purchaseESIM(userId: string, provider: string, plan: string) {
     // В реальности - вызов API провайдера
     const iccid = `89860${Math.random().toString().substr(2, 16)}`;
 
     const esim = await prisma.eSIM.create({
       data: {
         userId,
-        provider: 'zetexa',
-        plan: planId,
+        provider,
+        plan,
         status: 'active',
         iccid,
       },
