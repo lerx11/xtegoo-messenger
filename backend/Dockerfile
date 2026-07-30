@@ -9,10 +9,12 @@ RUN npm install
 
 COPY . .
 RUN npx prisma generate
-RUN npm run build
 
-# Проверяем что dist создался
-RUN ls -la dist/
+# Чистим dist и node_modules/.cache, затем компилируем без кеша
+RUN rm -rf dist node_modules/.cache
+RUN npx tsc --build --force
+
+RUN ls -la dist/validators/
 
 EXPOSE 3000
 
