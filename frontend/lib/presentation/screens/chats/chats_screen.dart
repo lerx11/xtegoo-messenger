@@ -3,439 +3,174 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/core.dart';
-import '../../../data/services/chat_service.dart';
-import '../../widgets/chats/story_ring_widget.dart';
 
 class ChatsScreen extends ConsumerStatefulWidget {
   const ChatsScreen({super.key});
-
   @override
   ConsumerState<ChatsScreen> createState() => _ChatsScreenState();
 }
 
 class _ChatsScreenState extends ConsumerState<ChatsScreen> {
-  final _searchController = TextEditingController();
-  bool _showSearch = false;
   final ScrollController _scrollController = ScrollController();
-  bool _isScrolled = false;
-
-  // Режим редактирования чатов (выбор + удаление)
+  final ImagePicker _picker = ImagePicker();
+  final TextEditingController _searchController = TextEditingController();
   bool _isEditMode = false;
-  // Выбранные чаты (по id)
+  bool _isExpanded = false;
   final Set<String> _selectedChatIds = {};
 
-  // Для выбора фото сторис (камера/галерея)
-  final ImagePicker _imagePicker = ImagePicker();
+  final List<Map<String, dynamic>> _stories = [
+    {'name': 'Моя история', 'isMine': true},
+    {'name': 'Анна', 'isMine': false},
+    {'name': 'Максим', 'isMine': false},
+    {'name': 'Елена', 'isMine': false},
+    {'name': 'Дмитрий', 'isMine': false},
+  ];
+
+  final List<Map<String, dynamic>> _chats = [
+    {'id': '1', 'name': 'Анна', 'lastMessage': 'Привет!', 'time': '12:30', 'unread': 2},
+    {'id': '2', 'name': 'Максим', 'lastMessage': 'Договорились', 'time': '11:15', 'unread': 0},
+    {'id': '3', 'name': 'Команда XTegoo', 'lastMessage': 'Олег: файл готов', 'time': '10:00', 'unread': 5},
+  ];
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(() {
-      if (_scrollController.offset > 20 && !_isScrolled) {
-        setState(() => _isScrolled = true);
-      } else if (_scrollController.offset <= 20 && _isScrolled) {
-        setState(() => _isScrolled = false);
-      }
+      final expand = _scrollController.hasClients && _scrollController.offset < 50;
+      if (expand != _isExpanded) setState(() => _isExpanded = expand);
     });
   }
-
   @override
-  void dispose() {
-    _searchController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
+  void dispose() { _scrollController.dispose(); _searchController.dispose(); super.dispose(); }
 
-  // Вход/выход из режима редактирования
-  void _toggleEditMode() {
-    setState(() {
-      _isEditMode = !_isEditMode;
-      if (!_isEditMode) {
-        _selectedChatIds.clear();
-      }
-    });
-  }
-
-  // Переключение выбора чата
-  void _toggleChatSelection(String chatId) {
-    setState(() {
-      if (_selectedChatIds.contains(chatId)) {
-        _selectedChatIds.remove(chatId);
-      } else {
-        _selectedChatIds.add(chatId);
-      }
-    });
-  }
-
-  // Удаление выбранных чатов (заглушка: просто очищаем выбор и выходим)
-  void _deleteSelected() {
-    // TODO: реализовать реальное удаление через chatService
-    setState(() {
-      _selectedChatIds.clear();
-      _isEditMode = false;
-    });
-  }
-
-  // BottomSheet выбора источника для сторис: Камера / Галерея
+  void _toggleEditMode() => setState(() { _isEditMode = !_isEditMode; _selectedChatIds.clear(); });
+  void _toggleChatSelection(String id) => setState(() {
+    if (_selectedChatIds.contains(id)) _selectedChatIds.remove(id); else _selectedChatIds.add(id);
+  });
+  void _deleteSelected() => setState(() {
+    _chats.removeWhere((c) => _selectedChatIds.contains(c['id'])); _selectedChatIds.clear(); _isEditMode = false;
+  });
   void _showStorySourceSheet() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.bottomSheet)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(AppPadding.screen),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.camera_alt_outlined, color: AppColors.primary),
-              title: const Text('Камера'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_outlined, color: AppColors.primary),
-              title: const Text('Галерея'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.gallery);
-              },
-            ),
-            const SizedBox(height: 20),
-          ],
+    showModalBottomSheet(context: context, builder: (_) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
+      ListTile(leading: const Icon(Icons.camera_alt), title: const Text('Камера'), onTap: () { Navigator.pop(context); _pickImage(ImageSource.camera); }),
+      ListTile(leading: const Icon(Icons.photo_library), title: const Text('Галерея'), onTap: () { Navigator.pop(context); _pickImage(ImageSource.gallery); }),
+    ])));
+  }
+  Future<void> _pickImage(ImageSource source) async {
+    try { final image = await _picker.pickImage(source: source); if (image != null && mounted) context.push('/story/create'); }
+    catch (_) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ошибка'))); }
+  }
+
+  // ─── APPBAR ────────────────────────────
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: AppColors.background, elevation: 0, titleSpacing: 0,
+      title: Row(children: [
+        const SizedBox(width: 4),
+        _buildChip(_isEditMode ? 'Готово' : 'Изм.', _toggleEditMode),
+        const Spacer(),
+        Opacity(opacity: _isExpanded ? 0.0 : 1.0, child: _buildCollapsedStories()),
+        const SizedBox(width: 8),
+        Text(_isEditMode && _selectedChatIds.isNotEmpty ? '${_selectedChatIds.length}' : 'Чаты', style: AppTextStyles.navigation),
+        const Spacer(),
+        _buildRightChip(),
+        const SizedBox(width: 4),
+      ]),
+    );
+  }
+
+  Widget _buildChip(String label, VoidCallback onTap) {
+    return GestureDetector(onTap: onTap, child: Container(
+      height: 36, padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(color: AppColors.chipSurface, borderRadius: BorderRadius.circular(18)),
+      alignment: Alignment.center, child: Text(label, style: AppTextStyles.secondary.copyWith(color: AppColors.primary)),
+    ));
+  }
+
+  Widget _buildRightChip() {
+    if (_isEditMode && _selectedChatIds.isNotEmpty) return IconButton(icon: const Icon(Icons.delete_outline, color: AppColors.error), onPressed: _deleteSelected);
+    return Container(height: 36, padding: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(color: AppColors.chipSurface, borderRadius: BorderRadius.circular(18)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        IconButton(icon: const Icon(Icons.add, color: AppColors.primary, size: 22), onPressed: _showStorySourceSheet, padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 36, minHeight: 36), splashRadius: 18),
+        Container(width: 1, height: 20, color: AppColors.border),
+        IconButton(icon: const Icon(Icons.edit_outlined, color: AppColors.primary, size: 20), onPressed: () => context.push('/new-message'), padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 36, minHeight: 36), splashRadius: 18),
+      ]));
+  }
+
+  Widget _buildCollapsedStories() {
+    return SizedBox(width: 60, height: 32, child: Stack(clipBehavior: Clip.none, children: List.generate(
+      _stories.length > 3 ? 3 : _stories.length, (i) => Positioned(left: i * 14.0, child: GestureDetector(
+        onTap: () => setState(() => _isExpanded = !_isExpanded),
+        child: Container(width: 32, height: 32, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 2), color: AppColors.secondarySurface)),
+      ))),
+    ));
+  }
+
+  // ─── РАЗВЁРНУТЫЕ СТОРИС ──────────────
+  Widget _buildExpandedStories() {
+    return Container(
+      height: _isExpanded ? 110 : 0,
+      child: Opacity(opacity: _isExpanded ? 1.0 : 0.0,
+        child: ListView.builder(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 20), itemCount: _stories.length,
+          itemBuilder: (context, index) {
+            final s = _stories[index];
+            final circle = Container(width: 68, height: 68, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary.withValues(alpha: 0.4), width: 2), color: AppColors.secondarySurface),
+              child: s['isMine'] == true ? const Icon(Icons.person, size: 34, color: AppColors.textTertiary) : null);
+            return Padding(padding: const EdgeInsets.only(right: 16), child: Column(children: [
+              s['isMine'] == true
+                  ? GestureDetector(onTap: _showStorySourceSheet, child: Stack(clipBehavior: Clip.none, children: [
+                      circle, Positioned(right: 2, bottom: 2, child: Container(width: 20, height: 20, decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle), child: const Icon(Icons.add, size: 14, color: Colors.white))),
+                    ]))
+                  : circle,
+              const SizedBox(height: 4), Text(s['name'] as String, style: AppTextStyles.small),
+            ]));
+          },
         ),
       ),
     );
   }
 
-  // Выбор изображения через image_picker
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      final XFile? file = await _imagePicker.pickImage(
-        source: source,
-        maxWidth: 1080,
-        maxHeight: 1920,
-        imageQuality: 85,
-      );
-      if (file != null && mounted) {
-        context.push('/story/create');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Не удалось выбрать изображение: $e')),
+  // ─── ПОИСК ─────────────────────────────
+  Widget _buildSearch() {
+    return Container(height: _isExpanded ? 56 : 0,
+      child: Padding(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4), child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(hintText: 'Поиск', prefixIcon: const Icon(Icons.search, color: AppColors.textTertiary),
+          filled: true, fillColor: AppColors.secondarySurface,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+      )));
+  }
+
+  // ─── ЧАТЫ ──────────────────────────────
+  Widget _buildChatList() {
+    if (_chats.isEmpty) return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Icon(Icons.chat_bubble_outline, size: 64, color: AppColors.textTertiary.withValues(alpha: 0.5)), const SizedBox(height: 16), const Text('Нет чатов', style: AppTextStyles.body),
+    ]));
+    return ListView.separated(controller: _scrollController, physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      padding: EdgeInsets.zero, itemCount: _chats.length, separatorBuilder: (_, __) => const Divider(height: 1, indent: 76),
+      itemBuilder: (context, index) {
+        final chat = _chats[index];
+        return ListTile(
+          leading: CircleAvatar(radius: 28, backgroundColor: AppColors.primary.withValues(alpha: 0.1), child: Text((chat['name'] as String)[0], style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600))),
+          title: Text(chat['name'] as String, style: AppTextStyles.navigation),
+          subtitle: Text(chat['lastMessage'] as String, style: AppTextStyles.secondary),
+          trailing: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text(chat['time'] as String, style: AppTextStyles.small),
+            if ((chat['unread'] as int) > 0) ...[ const SizedBox(height: 4), Container(padding: const EdgeInsets.all(6), decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle), child: Text('${chat['unread']}', style: const TextStyle(color: Colors.white, fontSize: 11)))],
+          ]),
+          onTap: _isEditMode ? () => _toggleChatSelection(chat['id'] as String) : () => context.push('/chat/${chat['id']}'),
+          selected: _selectedChatIds.contains(chat['id']),
         );
-      }
-    }
+      });
   }
 
   @override
   Widget build(BuildContext context) {
-    final chatsAsync = ref.watch(chatsProvider);
-
     return Scaffold(
       appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          // Сторис (над поиском)
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            height: _isScrolled ? 100 : 40,
-            padding: const EdgeInsets.symmetric(horizontal: AppPadding.screen),
-            child: _buildStories(),
-          ),
-          // Поисковая строка
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            height: _isScrolled ? 0 : 60,
-            padding: const EdgeInsets.symmetric(horizontal: AppPadding.screen),
-            child: _isScrolled
-                ? const SizedBox.shrink()
-                : Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Поиск',
-                        prefixIcon: const Icon(Icons.search, color: AppColors.textTertiary),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                    ),
-                  ),
-          ),
-          const SizedBox(height: 8),
-          // Список чатов
-          Expanded(
-            child: chatsAsync.when(
-              data: (chats) => ListView.separated(
-                controller: _scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: AppPadding.screen),
-                itemCount: chats.length,
-                separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
-                itemBuilder: (context, index) {
-                  final chat = chats[index];
-                  final isSelected = _selectedChatIds.contains(chat.id);
-
-                  // В режиме редактирования показываем чекбокс
-                  if (_isEditMode) {
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Чекбокс выбора
-                          Icon(
-                            isSelected
-                                ? Icons.check_circle
-                                : Icons.radio_button_unchecked,
-                            color: isSelected
-                                ? AppColors.primary
-                                : AppColors.textTertiary,
-                            size: 24,
-                          ),
-                          const SizedBox(width: 12),
-                          CircleAvatar(
-                            radius: 28,
-                            backgroundColor: AppColors.secondarySurface,
-                            child: chat.displayAvatar != null
-                                ? ClipOval(
-                                    child: Image.network(
-                                      chat.displayAvatar!,
-                                      width: 56,
-                                      height: 56,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => const Icon(
-                                        Icons.person,
-                                        size: 28,
-                                        color: AppColors.textTertiary,
-                                      ),
-                                    ),
-                                  )
-                                : const Icon(Icons.person, size: 28, color: AppColors.textTertiary),
-                          ),
-                        ],
-                      ),
-                      title: Text(
-                        chat.displayName,
-                        style: AppTextStyles.navigation,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        chat.lastMessage?.content ?? 'Нет сообщений',
-                        style: AppTextStyles.secondary.copyWith(color: AppColors.textSecondary),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      onTap: () => _toggleChatSelection(chat.id),
-                    );
-                  }
-
-                  // Обычный режим (как было)
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: CircleAvatar(
-                      radius: 28,
-                      backgroundColor: AppColors.secondarySurface,
-                      child: chat.displayAvatar != null
-                          ? ClipOval(
-                              child: Image.network(
-                                chat.displayAvatar!,
-                                width: 56,
-                                height: 56,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 28, color: AppColors.textTertiary),
-                              ),
-                            )
-                          : const Icon(Icons.person, size: 28, color: AppColors.textTertiary),
-                    ),
-                    title: Text(
-                      chat.displayName,
-                      style: AppTextStyles.navigation,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      chat.lastMessage?.content ?? 'Нет сообщений',
-                      style: AppTextStyles.secondary.copyWith(color: AppColors.textSecondary),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        if (chat.lastMessage != null)
-                          Text(
-                            FormatUtils.formatTime(chat.lastMessage!.createdAt),
-                            style: AppTextStyles.small.copyWith(color: AppColors.textTertiary),
-                          ),
-                        const SizedBox(height: 4),
-                        Container(
-                          width: 20,
-                          height: 20,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Center(
-                            child: Text(
-                              '2',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    onTap: () {
-                      context.push('/chat/${chat.id}');
-                    },
-                  );
-                },
-              ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(child: Text('Ошибка: $error')),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // AppBar:
-  // - Слева: «Изм.» / «Готово» в горизонтальной плашке (фон #F2F3F5, радиус 18),
-  //          ширина auto — подстраивается под текст
-  // - Центр: «Чаты» (17px semibold) или количество выбранных в режиме редактирования
-  // - Справа: ОДНА плашка с двумя иконками (add → BottomSheet, edit_outlined → /new-message)
-  AppBar _buildAppBar() {
-    return AppBar(
-      // Увеличиваем leadingWidth, чтобы плашка не обрезалась и подстраивалась под текст
-      leadingWidth: 100,
-      leading: Padding(
-        padding: const EdgeInsets.only(left: AppPadding.screen),
-        child: GestureDetector(
-          onTap: _toggleEditMode,
-          child: Container(
-            height: 36,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: AppColors.chipSurface,
-              borderRadius: BorderRadius.circular(AppRadius.appBarChip),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              _isEditMode ? 'Готово' : 'Изм.',
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontSize: 17,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ),
-        ),
-      ),
-      title: Text(
-        _isEditMode && _selectedChatIds.isNotEmpty
-            ? '${_selectedChatIds.length}'
-            : 'Чаты',
-        style: AppTextStyles.navigation,
-      ),
-      centerTitle: true,
-      actions: [
-        // В режиме редактирования с выбранными чатами — кнопка удаления
-        if (_isEditMode && _selectedChatIds.isNotEmpty)
-          IconButton(
-            icon: const Icon(Icons.delete_outline, color: AppColors.error),
-            onPressed: _deleteSelected,
-          )
-        else
-          // ОДНА плашка с двумя иконками
-          Padding(
-            padding: const EdgeInsets.only(right: AppPadding.screen),
-            child: Container(
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.chipSurface,
-                borderRadius: BorderRadius.circular(AppRadius.appBarChip),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Плюс → BottomSheet Камера/Галерея
-                  IconButton(
-                    icon: const Icon(Icons.add, color: AppColors.primary, size: 22),
-                    onPressed: _showStorySourceSheet,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    constraints: const BoxConstraints(minHeight: 36, minWidth: 36),
-                    splashRadius: 18,
-                  ),
-                  // Вертикальный разделитель
-                  Container(
-                    width: 1,
-                    height: 20,
-                    color: AppColors.border,
-                  ),
-                  // Карандаш → /new-message
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, color: AppColors.primary, size: 20),
-                    onPressed: () => context.push('/new-message'),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    constraints: const BoxConstraints(minHeight: 36, minWidth: 36),
-                    splashRadius: 18,
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildStories() {
-    final stories = [
-      {'name': 'Моя история', 'isMine': true},
-      {'name': 'Анна', 'isMine': false},
-      {'name': 'Максим', 'isMine': false},
-      {'name': 'Елена', 'isMine': false},
-      {'name': 'Дмитрий', 'isMine': false},
-    ];
-
-    return ListView.separated(
-      scrollDirection: Axis.horizontal,
-      itemCount: stories.length,
-      separatorBuilder: (_, __) => const SizedBox(width: 16),
-      itemBuilder: (context, index) {
-        final story = stories[index];
-        return StoryRingWidget(
-          name: story['name'] as String,
-          isMine: story['isMine'] as bool,
-          isExpanded: _isScrolled,
-          onTap: () {
-            if (story['isMine'] == true) {
-              // «Моя история» → BottomSheet Камера/Галерея
-              _showStorySourceSheet();
-            } else {
-              context.push('/story/user_$index');
-            }
-          },
-        );
-      },
+      body: Column(children: [_buildExpandedStories(), _buildSearch(), Expanded(child: _buildChatList())]),
     );
   }
 }
