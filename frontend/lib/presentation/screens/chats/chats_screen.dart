@@ -149,6 +149,13 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
       appBar: _buildAppBar(),
       body: Column(
         children: [
+          // Сторис (над поиском)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: _isScrolled ? 100 : 40,
+            padding: const EdgeInsets.symmetric(horizontal: AppPadding.screen),
+            child: _buildStories(),
+          ),
           // Поисковая строка
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
@@ -167,13 +174,6 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                       ),
                     ),
                   ),
-          ),
-          // Сторис
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            height: _isScrolled ? 100 : 40,
-            padding: const EdgeInsets.symmetric(horizontal: AppPadding.screen),
-            child: _buildStories(),
           ),
           const SizedBox(height: 8),
           // Список чатов
@@ -319,18 +319,21 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
   }
 
   // AppBar:
-  // - Слева: «Изм.» / «Готово» в округлой плашке (фон #F2F3F5, радиус 18)
+  // - Слева: «Изм.» / «Готово» в горизонтальной плашке (фон #F2F3F5, радиус 18),
+  //          ширина auto — подстраивается под текст
   // - Центр: «Чаты» (17px semibold) или количество выбранных в режиме редактирования
-  // - Справа: ОДНА плашка с двумя иконками (edit_outlined → /new-message, add → BottomSheet)
+  // - Справа: ОДНА плашка с двумя иконками (add → BottomSheet, edit_outlined → /new-message)
   AppBar _buildAppBar() {
     return AppBar(
+      // Увеличиваем leadingWidth, чтобы плашка не обрезалась и подстраивалась под текст
+      leadingWidth: 100,
       leading: Padding(
         padding: const EdgeInsets.only(left: AppPadding.screen),
         child: GestureDetector(
           onTap: _toggleEditMode,
           child: Container(
             height: 36,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: AppColors.chipSurface,
               borderRadius: BorderRadius.circular(AppRadius.appBarChip),
@@ -374,10 +377,10 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Карандаш → /new-message
+                  // Плюс → BottomSheet Камера/Галерея
                   IconButton(
-                    icon: const Icon(Icons.edit_outlined, color: AppColors.primary, size: 20),
-                    onPressed: () => context.push('/new-message'),
+                    icon: const Icon(Icons.add, color: AppColors.primary, size: 22),
+                    onPressed: _showStorySourceSheet,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     constraints: const BoxConstraints(minHeight: 36, minWidth: 36),
                     splashRadius: 18,
@@ -388,10 +391,10 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                     height: 20,
                     color: AppColors.border,
                   ),
-                  // Плюс → BottomSheet Камера/Галерея
+                  // Карандаш → /new-message
                   IconButton(
-                    icon: const Icon(Icons.add, color: AppColors.primary, size: 22),
-                    onPressed: _showStorySourceSheet,
+                    icon: const Icon(Icons.edit_outlined, color: AppColors.primary, size: 20),
+                    onPressed: () => context.push('/new-message'),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     constraints: const BoxConstraints(minHeight: 36, minWidth: 36),
                     splashRadius: 18,
@@ -425,7 +428,8 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
           isExpanded: _isScrolled,
           onTap: () {
             if (story['isMine'] == true) {
-              context.push('/story/create');
+              // «Моя история» → BottomSheet Камера/Галерея
+              _showStorySourceSheet();
             } else {
               context.push('/story/user_$index');
             }
