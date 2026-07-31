@@ -8,13 +8,18 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+
+# Генерируем Prisma client
 RUN npx prisma generate
 
-# Чистим dist и node_modules/.cache, затем компилируем без кеша
-RUN rm -rf dist node_modules/.cache
+# Удаляем кеш TypeScript и dist перед сборкой
+RUN rm -rf dist node_modules/.cache tsconfig.tsbuildinfo
+
+# Компилируем TypeScript
 RUN npx tsc --build --force
 
-RUN ls -la dist/validators/
+# Проверяем что всё скомпилировалось
+RUN ls -la dist/validators/ && ls -la dist/services/authService.js
 
 EXPOSE 3000
 
