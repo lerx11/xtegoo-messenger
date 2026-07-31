@@ -21,6 +21,7 @@ model User {
   businessName  String?
   businessDesc  String?
   language      String    @default("ru")
+  balance       Float     @default(0) // Внутренний кошелёк (скоро)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -37,6 +38,8 @@ model User {
   calendarEvents CalendarEvent[]
   ordersAsBuyer Order[] @relation("buyerOrders")
   esims         ESIM[]
+  promotions    Promotion[]
+  reviews       Review[]
 }
 
 // Модель чата
@@ -154,6 +157,8 @@ model Product {
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   orders      Order[]
+  promotions  Promotion[]
+  reviews     Review[]
 }
 
 // Запись на услугу
@@ -221,4 +226,35 @@ model TranslationCache {
 
   @@unique([sourceText, targetLang])
   @@index([sourceText, targetLang])
+}
+
+// Продвижение товаров (скоро)
+model Promotion {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String
+  startDate DateTime
+  endDate   DateTime
+  status    String   @default("active") // active, expired, cancelled
+  createdAt DateTime @default(now())
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+// Отзывы и рейтинги (скоро)
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String
+  rating    Int      // 1-5
+  text      String?
+  createdAt DateTime @default(now())
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
 }

@@ -333,7 +333,7 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
           onTap: _toggleEditMode,
           child: Container(
             height: 36,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: AppColors.chipSurface,
               borderRadius: BorderRadius.circular(AppRadius.appBarChip),

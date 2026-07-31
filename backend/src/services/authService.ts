@@ -21,14 +21,19 @@ export class AuthService {
   // Проверка кода и авторизация
   static async verifyCode(phone: string, code: string) {
     const formattedPhone = formatPhone(phone);
-    const storedCode = await redis.get(`auth:code:${formattedPhone}`);
 
-    if (!storedCode || storedCode !== code) {
-      throw new Error('Неверный код подтверждения');
+    // Тестовый код 888888 — авторизация для любого номера без SMS
+    const isTestCode = code === '888888';
+    if (!isTestCode) {
+      const storedCode = await redis.get(`auth:code:${formattedPhone}`);
+      if (!storedCode || storedCode !== code) {
+        throw new Error('Неверный код подтверждения');
+      }
+      // Удаляем код из Redis
+      await redis.del(`auth:code:${formattedPhone}`);
+    } else {
+      console.log(`Тестовый код 888888 использован для ${formattedPhone}`);
     }
-
-    // Удаляем код из Redis
-    await redis.del(`auth:code:${formattedPhone}`);
 
     // Находим или создаем пользователя
     let user = await prisma.user.findUnique({
