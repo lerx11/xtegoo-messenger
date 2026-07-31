@@ -10,6 +10,7 @@ import '../../presentation/screens/main/main_shell.dart';
 import '../../presentation/screens/chats/chats_screen.dart';
 import '../../presentation/screens/chats/chat_screen.dart';
 import '../../presentation/screens/chats/new_message_screen.dart';
+import '../../presentation/screens/chats/create_chat_screens.dart';
 import '../../presentation/screens/calls/calls_history_screen.dart';
 import '../../presentation/screens/calls/call_screen.dart';
 import '../../presentation/screens/marketplace/marketplace_screen.dart';
@@ -84,6 +85,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/new-message',
         builder: (context, state) => const NewMessageScreen(),
+      ),
+      GoRoute(
+        path: '/create-group',
+        builder: (context, state) => const CreateGroupScreen(),
+      ),
+      GoRoute(
+        path: '/create-contact',
+        builder: (context, state) => const CreateContactScreen(),
+      ),
+      GoRoute(
+        path: '/create-channel',
+        builder: (context, state) => const CreateChannelScreen(),
       ),
       GoRoute(
         path: '/chat/group/:id',

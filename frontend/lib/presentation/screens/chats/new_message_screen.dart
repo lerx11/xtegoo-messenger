@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/core.dart';
 
 /// Экран «Написать сообщение».
@@ -111,27 +112,21 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
             iconBg: const Color(0xFFE7F3FF),
             iconColor: const Color(0xFF007AFF),
             title: 'Создать группу',
-            onTap: () {
-              // Заглушка: реальная навигация будет добавлена позже
-            },
+            onTap: () => context.push('/create-group'),
           ),
           _buildActionTile(
             icon: Icons.person_add,
             iconBg: const Color(0xFFE7F3FF),
             iconColor: const Color(0xFF007AFF),
             title: 'Создать контакт',
-            onTap: () {
-              // Заглушка
-            },
+            onTap: () => context.push('/create-contact'),
           ),
           _buildActionTile(
             icon: Icons.campaign_outlined,
             iconBg: const Color(0xFFE7F3FF),
             iconColor: const Color(0xFF007AFF),
             title: 'Создать канал',
-            onTap: () {
-              // Заглушка
-            },
+            onTap: () => context.push('/create-channel'),
           ),
           const Divider(height: 1, indent: AppPadding.screen),
           // Список контактов по алфавиту
