@@ -9,9 +9,9 @@ import '../../presentation/screens/auth/username_setup_screen.dart';
 import '../../presentation/screens/main/main_shell.dart';
 import '../../presentation/screens/chats/chats_screen.dart';
 import '../../presentation/screens/chats/chat_screen.dart';
+import '../../presentation/screens/chats/new_message_screen.dart';
 import '../../presentation/screens/calls/calls_history_screen.dart';
 import '../../presentation/screens/calls/call_screen.dart';
-import '../../presentation/screens/translate/translator_screen.dart';
 import '../../presentation/screens/marketplace/marketplace_screen.dart';
 import '../../presentation/screens/marketplace/product_screen.dart';
 import '../../presentation/screens/marketplace/orders_screen.dart';
@@ -46,7 +46,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/auth/otp',
-        builder: (context, state) => const OtpScreen(),
+        builder: (context, state) => OtpScreen(phone: state.extra as String),
       ),
       GoRoute(
         path: '/auth/username',
@@ -62,10 +62,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/home/calls',
             builder: (context, state) => const CallsHistoryScreen(),
-          ),
-          GoRoute(
-            path: '/home/translate',
-            builder: (context, state) => const TranslatorScreen(),
           ),
           GoRoute(
             path: '/home/marketplace',
@@ -84,6 +80,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/chat/:id',
         builder: (context, state) => ChatScreen(chatId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/new-message',
+        builder: (context, state) => const NewMessageScreen(),
       ),
       GoRoute(
         path: '/chat/group/:id',
@@ -132,10 +132,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/esim',
         builder: (context, state) => const EsimScreen(),
-      ),
-      GoRoute(
-        path: '/translate',
-        builder: (context, state) => const TranslatorScreen(fullScreen: true),
       ),
       GoRoute(
         path: '/search',

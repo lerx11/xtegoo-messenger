@@ -8,6 +8,7 @@ class AppColors {
 
   static const Color background = Color(0xFFFFFFFF);
   static const Color secondarySurface = Color(0xFFF7F8FA);
+  static const Color chipSurface = Color(0xFFF2F3F5); // Фон плашек кнопок AppBar
   static const Color chatBubble = Color(0xFFF4F5F7);
 
   static const Color textPrimary = Color(0xFF111111);

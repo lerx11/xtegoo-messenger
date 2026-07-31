@@ -43,16 +43,22 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: TextButton(
-          onPressed: () {
-            _showMenu(context);
-          },
-          child: const Text(
-            'Изм.',
-            style: TextStyle(
-              color: AppColors.primary,
-              fontSize: 17,
-              fontWeight: FontWeight.w400,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: AppPadding.screen),
+          child: GestureDetector(
+            onTap: () => context.push('/new-message'),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.chipSurface,
+                borderRadius: BorderRadius.circular(AppRadius.appBarChip),
+              ),
+              child: const Icon(
+                Icons.edit_square,
+                color: AppColors.primary,
+                size: 20,
+              ),
             ),
           ),
         ),

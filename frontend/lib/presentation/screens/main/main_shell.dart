@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_text_styles.dart';
-import '../../../core/theme/app_theme.dart';
 
 class MainShell extends StatelessWidget {
   final Widget child;
@@ -13,10 +11,9 @@ class MainShell extends StatelessWidget {
     final location = GoRouterState.of(context).uri.toString();
     if (location.contains('/home/chats')) return 0;
     if (location.contains('/home/calls')) return 1;
-    if (location.contains('/home/translate')) return 2;
-    if (location.contains('/home/marketplace')) return 3;
-    if (location.contains('/home/calendar')) return 4;
-    if (location.contains('/home/settings')) return 5;
+    if (location.contains('/home/marketplace')) return 2;
+    if (location.contains('/home/calendar')) return 3;
+    if (location.contains('/home/settings')) return 4;
     return 0;
   }
 
@@ -29,15 +26,12 @@ class MainShell extends StatelessWidget {
         context.go('/home/calls');
         break;
       case 2:
-        context.go('/home/translate');
-        break;
-      case 3:
         context.go('/home/marketplace');
         break;
-      case 4:
+      case 3:
         context.go('/home/calendar');
         break;
-      case 5:
+      case 4:
         context.go('/home/settings');
         break;
     }
@@ -70,17 +64,12 @@ class MainShell extends StatelessWidget {
               label: 'Звонки',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.translate),
-              activeIcon: Icon(Icons.translate),
-              label: 'Перевод',
-            ),
-            BottomNavigationBarItem(
               icon: Icon(Icons.shopping_bag_outlined),
               activeIcon: Icon(Icons.shopping_bag),
               label: 'Маркет',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today),
+              icon: Icon(Icons.calendar_today_outlined),
               activeIcon: Icon(Icons.calendar_today),
               label: 'Календарь',
             ),

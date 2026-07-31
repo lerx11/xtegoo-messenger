@@ -5,6 +5,7 @@ import 'app_text_styles.dart';
 // Радиусы дизайн-системы
 class AppRadius {
   static const double chip = 8;
+  static const double appBarChip = 18; // Радиус округлой плашки на AppBar
   static const double search = 12;
   static const double input = 16;
   static const double button = 18;
